@@ -3,5 +3,10 @@
 @tailwind utilities;
 
 html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #f9fafb;
+  color: #111827;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 .container { max-width: 1100px; }
-.logo{ color:;}

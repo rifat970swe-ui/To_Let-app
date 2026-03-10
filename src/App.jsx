@@ -25,6 +25,7 @@ export default function App() {
             }
           />
           <Route path="/login" element={<Login />} />
+          <Route path="*" element={<div className="bg-white rounded shadow p-6">Page not found.</div>} />
         </Routes>
       </main>
       <Footer />

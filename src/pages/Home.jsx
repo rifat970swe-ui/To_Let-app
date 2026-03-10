@@ -1,31 +1,72 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import React, { useEffect, useMemo, useState } from 'react'
+import api from '../config/api'
 import ListingCard from '../components/ListingCard'
 import demoListings from '../data/demoListings'
+import { getLocalListings } from '../utils/localListings'
+
+function mergeUniqueById(...groups) {
+  const map = new Map()
+
+  groups.flat().forEach((item) => {
+    if (item?._id) map.set(item._id, item)
+  })
+
+  return Array.from(map.values())
+}
 
 export default function Home() {
-  const [listings, setListings] = useState(demoListings)
+  const [listings, setListings] = useState(() => mergeUniqueById(demoListings, getLocalListings()))
   const [query, setQuery] = useState('')
   const [city, setCity] = useState('')
   const [type, setType] = useState('')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [sortBy, setSortBy] = useState('default')
+  const [isLoading, setIsLoading] = useState(true)
+  const [dataNotice, setDataNotice] = useState('Loading listings...')
 
   useEffect(() => {
+    let active = true
+
     async function load() {
+      setIsLoading(true)
+      const localListings = getLocalListings()
+
       try {
-        const res = await axios.get('http://localhost:5000/api/listings')
-        const items = res.data.items || []
-        if (items.length > 0) setListings(items)
+        const res = await api.get('/api/listings')
+        const items = Array.isArray(res.data?.items)
+          ? res.data.items
+          : (Array.isArray(res.data) ? res.data : [])
+
+        if (!active) return
+
+        if (items.length > 0) {
+          setListings(mergeUniqueById(items, localListings))
+          setDataNotice('Showing live API listings and your local demo listings.')
+        } else {
+          setListings(mergeUniqueById(demoListings, localListings))
+          setDataNotice('No API listing found. Showing demo and local listings.')
+        }
       } catch (err) {
-        console.warn('API not reachable, using demo listings')
+        if (!active) return
+        setListings(mergeUniqueById(demoListings, localListings))
+        setDataNotice('Backend unavailable. Showing demo and local listings.')
+      } finally {
+        if (active) setIsLoading(false)
       }
     }
+
     load()
+
+    return () => {
+      active = false
+    }
   }, [])
 
-  const cityOptions = Array.from(new Set(listings.map((l) => l.city).filter(Boolean)))
+  const cityOptions = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.city).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    [listings],
+  )
 
   const filtered = listings
     .filter((l) => {
@@ -126,8 +167,17 @@ export default function Home() {
         </select>
       </section>
 
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-gray-600">{dataNotice}</p>
+        <span className="text-sm text-gray-500">{filtered.length} listing found</span>
+      </div>
+
       <h2 className="text-3xl font-semibold mb-6">Discover properties</h2>
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded shadow p-8 text-center text-gray-600">
+          Loading listings...
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white rounded shadow p-8 text-center text-gray-600">
           No listing matched your filters.
         </div>

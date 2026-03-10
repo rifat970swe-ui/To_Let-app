@@ -38,7 +38,7 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className="text-xl font-bold text-indigo-600">Tolet</Link>
         <nav className="space-x-4 flex items-center">
           {user ? (
@@ -46,6 +46,7 @@ export default function Header() {
               <span className="text-sm text-gray-600">
                 {user.name || user.email || 'Signed in'}
               </span>
+              {user.demoMode ? <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded">Demo mode</span> : null}
               <button type="button" onClick={onLogout} className="text-gray-600 hover:text-indigo-600">
                 Logout
               </button>

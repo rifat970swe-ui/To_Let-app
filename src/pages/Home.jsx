@@ -17,7 +17,6 @@ function mergeUniqueById(...groups) {
 export default function Home() {
   const [listings, setListings] = useState(() => mergeUniqueById(demoListings, getLocalListings()))
   const [query, setQuery] = useState('')
-  const [draftQuery, setDraftQuery] = useState('')
   const [city, setCity] = useState('')
   const [type, setType] = useState('')
   const [minPrice, setMinPrice] = useState('')
@@ -103,7 +102,6 @@ export default function Home() {
 
   function resetFilters() {
     setQuery('')
-    setDraftQuery('')
     setCity('')
     setType('')
     setMinPrice('')
@@ -112,7 +110,6 @@ export default function Home() {
   }
 
   function applySearch() {
-    setQuery(draftQuery.trim())
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 0)
@@ -136,8 +133,8 @@ export default function Home() {
             <p className="mt-2 text-lg">Search verified listings for rent - homes, shops and more.</p>
             <div className="mt-4 flex gap-2">
               <input
-                value={draftQuery}
-                onChange={(e) => setDraftQuery(e.target.value)}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') applySearch()
                 }}

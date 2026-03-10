@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export default function Header() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null')
@@ -51,6 +52,8 @@ export default function Header() {
                 Logout
               </button>
             </>
+          ) : location.pathname === '/login' ? (
+            <Link className="text-gray-600 hover:text-indigo-600" to="/">Home</Link>
           ) : (
             <Link className="text-gray-600 hover:text-indigo-600" to="/login">Sign in</Link>
           )}

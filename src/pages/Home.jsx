@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import api, { API_ENABLED } from '../config/api'
 import ListingCard from '../components/ListingCard'
 import demoListings from '../data/demoListings'
@@ -17,6 +17,7 @@ function mergeUniqueById(...groups) {
 export default function Home() {
   const [listings, setListings] = useState(() => mergeUniqueById(demoListings, getLocalListings()))
   const [query, setQuery] = useState('')
+  const [draftQuery, setDraftQuery] = useState('')
   const [city, setCity] = useState('')
   const [type, setType] = useState('')
   const [minPrice, setMinPrice] = useState('')
@@ -24,6 +25,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('default')
   const [isLoading, setIsLoading] = useState(true)
   const [dataNotice, setDataNotice] = useState('Loading listings...')
+  const resultsRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -83,6 +85,8 @@ export default function Home() {
         || (l.title || '').toLowerCase().includes(q)
         || (l.city || '').toLowerCase().includes(q)
         || (l.description || '').toLowerCase().includes(q)
+        || (l.address || '').toLowerCase().includes(q)
+        || (l.type || '').toLowerCase().includes(q)
       const matchesCity = !city || l.city === city
       const matchesType = !type || l.type === type
       const price = Number(l.price || 0)
@@ -99,11 +103,19 @@ export default function Home() {
 
   function resetFilters() {
     setQuery('')
+    setDraftQuery('')
     setCity('')
     setType('')
     setMinPrice('')
     setMaxPrice('')
     setSortBy('default')
+  }
+
+  function applySearch() {
+    setQuery(draftQuery.trim())
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
   }
 
   return (
@@ -124,11 +136,17 @@ export default function Home() {
             <p className="mt-2 text-lg">Search verified listings for rent - homes, shops and more.</p>
             <div className="mt-4 flex gap-2">
               <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={draftQuery}
+                onChange={(e) => setDraftQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') applySearch()
+                }}
                 placeholder="Search by city, title or keyword"
                 className="w-full max-w-md px-3 py-2 rounded"
               />
+              <button type="button" onClick={applySearch} className="bg-white text-indigo-700 px-4 py-2 rounded font-medium">
+                Search
+              </button>
               <button type="button" onClick={resetFilters} className="bg-indigo-600 text-white px-4 py-2 rounded">Reset</button>
             </div>
           </div>
@@ -175,7 +193,7 @@ export default function Home() {
         </select>
       </section>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div ref={resultsRef} className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-gray-600">{dataNotice}</p>
         <span className="text-sm text-gray-500">{filtered.length} listing found</span>
       </div>

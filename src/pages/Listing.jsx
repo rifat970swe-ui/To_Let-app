@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import api from '../config/api'
+import api, { API_ENABLED } from '../config/api'
 import demoListings from '../data/demoListings'
 import { findLocalListingById } from '../utils/localListings'
 
@@ -15,6 +15,29 @@ export default function Listing() {
 
     async function load() {
       setIsLoading(true)
+
+      if (!API_ENABLED) {
+        const local = findLocalListingById(id)
+        if (!active) return
+        if (local) {
+          setListing(local)
+          setSource('local')
+          setIsLoading(false)
+          return
+        }
+
+        const demo = demoListings.find((d) => d._id === id)
+        if (!active) return
+        if (demo) {
+          setListing(demo)
+          setSource('demo')
+        } else {
+          setListing(null)
+          setSource('')
+        }
+        setIsLoading(false)
+        return
+      }
 
       try {
         const res = await api.get(`/api/listings/${id}`)

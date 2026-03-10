@@ -16,6 +16,7 @@ A React + Vite based rental listing app with an offline-friendly demo mode.
 
 ## Easy Demo Mode (No Backend Needed)
 
+- Demo mode is the default when `VITE_API_BASE_URL` is not set.
 - Home page loads built-in demo listings automatically.
 - Login works in local demo mode when API is offline.
 - Create listing saves to browser `localStorage` when API is offline.
@@ -39,4 +40,3 @@ If you have a backend running on a different URL:
 - `npm run dev:host` - run dev server with host enabled
 - `npm run build` - production build
 - `npm run preview` - preview built app
-

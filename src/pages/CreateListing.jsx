@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import api from '../config/api'
+import { useNavigate } from 'react-router-dom'
+import api, { API_ENABLED } from '../config/api'
 import { createLocalListing } from '../utils/localListings'
 
 function fileToDataUrl(file) {
@@ -12,6 +13,7 @@ function fileToDataUrl(file) {
 }
 
 export default function CreateListing() {
+  const navigate = useNavigate()
   const [form, setForm] = useState({ title: '', description: '', price: '', city: '', address: '', type: 'HOME', images: [] })
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState({ type: '', text: '' })
@@ -57,6 +59,15 @@ export default function CreateListing() {
       images: form.images,
     }
 
+    if (!API_ENABLED) {
+      createLocalListing(payload)
+      setStatus({ type: 'success', text: 'Listing saved in demo mode.' })
+      setForm({ title: '', description: '', price: '', city: '', address: '', type: 'HOME', images: [] })
+      setSaving(false)
+      setTimeout(() => navigate('/'), 500)
+      return
+    }
+
     try {
       const token = localStorage.getItem('token')
 
@@ -68,10 +79,12 @@ export default function CreateListing() {
       })
       setStatus({ type: 'success', text: 'Listing created on server.' })
       setForm({ title: '', description: '', price: '', city: '', address: '', type: 'HOME', images: [] })
+      setTimeout(() => navigate('/'), 500)
     } catch (err) {
       createLocalListing(payload)
-      setStatus({ type: 'warning', text: 'Backend unavailable. Listing saved locally for demo mode.' })
+      setStatus({ type: 'warning', text: 'Server rejected request. Listing saved locally in demo mode.' })
       setForm({ title: '', description: '', price: '', city: '', address: '', type: 'HOME', images: [] })
+      setTimeout(() => navigate('/'), 500)
     } finally {
       setSaving(false)
     }
@@ -80,7 +93,11 @@ export default function CreateListing() {
   return (
     <div className="max-w-2xl mx-auto bg-white rounded shadow p-6">
       <h2 className="text-2xl font-semibold mb-4">Create Listing</h2>
-      <p className="mb-4 text-sm text-gray-500">If server is offline, listing will be saved to local demo storage.</p>
+      <p className="mb-4 text-sm text-gray-500">
+        {API_ENABLED
+          ? 'API mode enabled. If server rejects request, listing is saved locally.'
+          : 'Demo mode enabled. Listing will be saved locally and shown on home page.'}
+      </p>
       {status.text ? (
         <div
           className={`mb-4 text-sm ${

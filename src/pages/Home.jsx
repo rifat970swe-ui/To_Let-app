@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import api from '../config/api'
+import api, { API_ENABLED } from '../config/api'
 import ListingCard from '../components/ListingCard'
 import demoListings from '../data/demoListings'
 import { getLocalListings } from '../utils/localListings'
@@ -31,6 +31,14 @@ export default function Home() {
     async function load() {
       setIsLoading(true)
       const localListings = getLocalListings()
+
+      if (!API_ENABLED) {
+        if (!active) return
+        setListings(mergeUniqueById(demoListings, localListings))
+        setDataNotice('Demo mode: showing built-in and local listings.')
+        setIsLoading(false)
+        return
+      }
 
       try {
         const res = await api.get('/api/listings')
